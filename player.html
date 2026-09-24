@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lunar Rover — Player Screen</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --tq: #00C1D4; --bl: #143AFF; --vi: #7200FE;
+  --mn: #5AFFC5; --rd: #FF4F4F; --or: #FF7E15;
+  --ye: #FFDE36; --wh: #FFFFFF; --bk: #000000;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Poppins','Segoe UI',sans-serif;background:#0a0e1e;color:var(--wh);min-height:100vh;overflow-x:hidden}
+
+/* ── NAV ── */
+.nav{background:rgba(0,0,0,.7);border-bottom:3px solid var(--tq);display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:64px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.nav-logo{font-size:1.4rem;font-weight:800;letter-spacing:.06em}
+.nav-logo .t{color:var(--tq)}.nav-logo .b{color:var(--bl)}
+.nav-sub{font-size:.75rem;font-weight:600;color:rgba(255,255,255,.5);border-left:2px solid var(--tq);padding-left:10px;margin-left:10px;text-transform:uppercase;letter-spacing:.08em}
+.nav-right{display:flex;align-items:center;gap:14px}
+.phase-badge{background:rgba(0,193,212,.15);border:1.5px solid var(--tq);border-radius:20px;padding:4px 14px;font-size:.78rem;font-weight:600;color:var(--tq);letter-spacing:.04em}
+.sync-indicator{display:flex;align-items:center;gap:6px;font-size:.72rem;color:rgba(255,255,255,.4)}
+.dot-live{width:8px;height:8px;border-radius:50%;background:var(--mn);animation:pulse 1.5s infinite;display:inline-block}
+.dot-stale{width:8px;height:8px;border-radius:50%;background:var(--or);display:inline-block}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── TIMER BAR ── */
+.timer-bar{background:rgba(0,0,0,.5);border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;gap:40px;padding:14px 28px}
+.timer-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.35);text-align:center;margin-bottom:4px}
+.timer-big{font-size:2.8rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tq);line-height:1;text-shadow:0 0 30px rgba(0,193,212,.35)}
+.timer-big.warning{color:var(--or);text-shadow:0 0 30px rgba(255,126,21,.4)}
+.timer-big.danger{color:var(--rd);text-shadow:0 0 30px rgba(255,79,79,.4)}
+.elapsed-val{font-size:1rem;font-weight:700;color:rgba(255,255,255,.4)}
+
+/* ── HERO ── */
+.hero{text-align:center;padding:48px 20px 28px;position:relative}
+.hero-title{font-size:clamp(2rem,6vw,3.6rem);font-weight:800;line-height:1.1;margin-bottom:10px}
+.hero-title .line1{color:var(--tq)}
+.hero-title .line2{color:var(--wh)}
+.hero-subtitle{font-size:.85rem;color:rgba(255,255,255,.4);letter-spacing:.08em;text-transform:uppercase}
+
+/* ── PHASE DISPLAY ── */
+.phase-display{text-align:center;margin-bottom:20px}
+.phase-pill{display:inline-block;background:linear-gradient(135deg,var(--bl),var(--vi));border-radius:30px;padding:10px 32px;font-size:1.05rem;font-weight:700;letter-spacing:.04em}
+
+/* ── WAITING ── */
+.waiting{text-align:center;padding:80px 20px}
+.waiting-icon{font-size:4rem;margin-bottom:16px;opacity:.5}
+.waiting-text{font-size:1.05rem;color:rgba(255,255,255,.4)}
+
+/* ── PHASE INFO CARDS ── */
+.phase-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:900px;margin:0 auto 28px;padding:0 24px}
+.phase-info-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:18px 20px}
+.pi-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.35);margin-bottom:6px}
+.pi-val{font-size:1.2rem;font-weight:800;color:var(--tq)}
+.pi-sub{font-size:.75rem;color:rgba(255,255,255,.35);margin-top:4px}
+
+/* ── WINNER BANNER ── */
+.winner-banner{background:linear-gradient(135deg,#071a0a,#0a1f15);border:2px solid var(--mn);border-radius:18px;padding:28px 32px;text-align:center;max-width:900px;margin:0 auto 28px;display:none}
+.winner-banner h2{font-size:2rem;font-weight:800;color:var(--mn);margin-bottom:6px}
+.winner-banner p{color:rgba(255,255,255,.5)}
+
+/* ── TEAMS GRID ── */
+.teams-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;padding:0 24px 60px;max-width:1200px;margin:0 auto}
+
+/* ── TEAM CARD ── */
+.team-card{background:rgba(255,255,255,.04);border-radius:20px;border:2px solid rgba(255,255,255,.08);padding:24px;position:relative;overflow:hidden;transition:transform .2s,border-color .3s}
+.team-card:hover{transform:translateY(-2px)}
+.team-card.leading{border-color:var(--tq);box-shadow:0 0 32px rgba(0,193,212,.15)}
+.team-card.second{border-color:rgba(114,0,254,.4)}
+.team-card.third{border-color:rgba(20,58,255,.35)}
+.team-accent{position:absolute;top:0;left:0;right:0;height:4px;border-radius:20px 20px 0 0}
+.team-rank{position:absolute;top:16px;right:16px;font-size:1.8rem;opacity:.85}
+.team-name{font-size:1.1rem;font-weight:700;margin:8px 0 2px}
+.team-code{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:12px}
+.budget-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.35)}
+.budget-amount{font-size:2rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1;margin-bottom:12px}
+.budget-amount.positive{color:var(--mn)}
+.budget-amount.warning{color:var(--or)}
+.budget-amount.danger{color:var(--rd)}
+.budget-amount.neutral{color:var(--wh)}
+
+/* ── PILLS ── */
+.pills{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.pill{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:12px;font-size:.68rem;font-weight:600}
+.pill-feat{background:rgba(0,193,212,.12);color:var(--tq);border:1px solid rgba(0,193,212,.3)}
+.pill-pen{background:rgba(255,79,79,.12);color:var(--rd);border:1px solid rgba(255,79,79,.28)}
+.pill-bon{background:rgba(90,255,197,.12);color:var(--mn);border:1px solid rgba(90,255,197,.28)}
+.pill-bl{background:rgba(20,58,255,.15);color:#8099ff;border:1px solid rgba(20,58,255,.3)}
+
+/* ── VOTES BAR ── */
+.votes-row{margin-top:12px;display:flex;align-items:center;gap:8px}
+.vote-bar-bg{flex:1;background:rgba(255,255,255,.06);border-radius:4px;height:6px;overflow:hidden}
+.vote-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--bl),var(--tq));transition:width .5s ease}
+.vote-count{font-size:.8rem;font-weight:700;color:rgba(255,255,255,.7);min-width:24px;text-align:right}
+
+/* ── LIVE TESTS ── */
+.live-section{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06)}
+.live-checks{display:flex;gap:5px;flex-wrap:wrap}
+.check-item{font-size:.68rem;padding:2px 7px;border-radius:10px}
+.check-item.pass{background:rgba(90,255,197,.12);color:var(--mn);border:1px solid rgba(90,255,197,.2)}
+.check-item.fail{background:rgba(255,255,255,.04);color:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.08)}
+
+/* ── SCOREBOARD ── */
+.scoreboard-wrap{max-width:900px;margin:0 auto 40px;padding:0 24px;display:none}
+.sb-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.3);margin-bottom:12px}
+.scoreboard{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden}
+.sb-head{background:rgba(0,0,0,.3);display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 1fr;gap:12px;padding:12px 20px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3)}
+.sb-row{display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr 1fr;gap:12px;padding:12px 20px;align-items:center;border-top:1px solid rgba(255,255,255,.06)}
+.sb-row.rank1{background:rgba(0,193,212,.05)}
+
+/* ── FOOTER / MISC ── */
+.footer-note{text-align:center;padding:20px;font-size:.72rem;color:rgba(255,255,255,.18)}
+.last-update{text-align:center;font-size:.72rem;color:rgba(255,255,255,.28);margin-bottom:16px}
+.bg-deco{position:fixed;top:-200px;right:-200px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(20,58,255,.12) 0%,transparent 70%);pointer-events:none;z-index:0}
+.bg-deco2{position:fixed;bottom:-150px;left:-150px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(0,193,212,.10) 0%,transparent 70%);pointer-events:none;z-index:0}
+.content-wrap{position:relative;z-index:1}
+</style>
+</head>
+<body>
+<div class="bg-deco"></div>
+<div class="bg-deco2"></div>
+<div class="content-wrap">
+
+<!-- NAV -->
+<nav class="nav">
+  <div style="display:flex;align-items:center">
+    <div class="nav-logo"><span class="t">OD</span><span class="b">CE</span></div>
+    <div class="nav-sub">Lunar Rover Mission</div>
+  </div>
+  <div class="nav-right">
+    <div class="phase-badge" id="phase-badge">Waiting for host…</div>
+    <div class="sync-indicator">
+      <div class="dot-live" id="sync-dot"></div>
+      <span id="sync-text">Connecting…</span>
+    </div>
+  </div>
+</nav>
+
+<!-- TIMER BAR -->
+<div class="timer-bar" id="timer-bar" style="display:none">
+  <div style="text-align:center">
+    <div class="timer-label">Phase Timer</div>
+    <div class="timer-big" id="pv-timer">— : —</div>
+  </div>
+  <div style="text-align:center">
+    <div class="timer-label">Session Elapsed</div>
+    <div class="elapsed-val" id="pv-elapsed">—</div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-title">
+    <div class="line1">Lunar Rover</div>
+    <div class="line2">Mission Control</div>
+  </div>
+  <div class="hero-subtitle">Live scoreboard · updates every 1.5 s</div>
+</div>
+
+<!-- WAITING -->
+<div id="waiting-state" class="waiting">
+  <div class="waiting-icon">🛸</div>
+  <div class="waiting-text">
+    Waiting for the facilitator to start the session…<br><br>
+    <span style="font-size:.82rem;color:rgba(255,255,255,.22)">
+      This screen updates automatically when data is available.<br>
+      Keep this window open beside the facilitator dashboard.
+    </span>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="main-state" style="display:none">
+  <div class="last-update"><span id="last-update-text">—</span></div>
+
+  <!-- Phase info cards -->
+  <div class="phase-info-grid" id="phase-info-grid"></div>
+
+  <!-- Winner banner (phase 6) -->
+  <div class="winner-banner" id="winner-banner">
+    <div style="font-size:2.5rem;margin-bottom:8px">🏆</div>
+    <h2 id="winner-name">—</h2>
+    <p id="winner-sub">—</p>
+  </div>
+
+  <!-- Teams grid -->
+  <div class="teams-grid" id="teams-grid"></div>
+
+  <!-- Scoreboard (late phases) -->
+  <div class="scoreboard-wrap" id="scoreboard-wrap">
+    <div class="sb-title">📊 Live Scoreboard</div>
+    <div class="scoreboard">
+      <div class="sb-head">
+        <div>Team</div>
+        <div>Budget Remaining</div>
+        <div>Code Tier</div>
+        <div>Features</div>
+        <div>Penalties</div>
+      </div>
+      <div id="sb-body"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-note">ODCE · TU Hamburg · Lunar Rover Project Simulation</div>
+</div>
+
+<script>
+// ─── CONFIG ────────────────────────────────────────────────────────────
+const LS_KEY = 'lunar_rover_session';   // must match facilitator
+
+const PHASE_LABELS = {
+  setup:  'Setup',
+  ph0:    'Phase 0 · Introduction',
+  ph1:    'Phase 1 · Planning',
+  ph2:    'Phase 2 · Build & Program',
+  ph2a:   'Phase 2A · 1st Pitch',
+  ph3:    'Phase 3 · Validation',
+  ph4:    'Phase 4 · Final Alignment',
+  ph5:    'Phase 5 · Final Pitch',
+  ph6:    'Phase 6 · Results 🏆',
+};
+
+const PHASE_TIPS = {
+  setup:  'Waiting for the facilitator to begin…',
+  ph0:    'Explore kits, read roles, understand the budget.',
+  ph1:    'Choose code tier, plan features, allocate budget.',
+  ph2:    'Build & program the rover. Marketing prepares the pitch.',
+  ph2a:   'Each team presents their rover concept. 5 min per team.',
+  ph3:    'Run tests. 3rd test run onward costs 500K penalty.',
+  ph4:    'Verify cross-functional alignment. Errors cost 500K.',
+  ph5:    'Final pitch + peer voting. Scored on 5 criteria.',
+  ph6:    'Results are in. The winner is announced!',
+};
+
+const LIVE_LABELS = {
+  forward:        'Forward',
+  reverse:        'Reverse',
+  left:           'Left',
+  right:          'Right',
+  return_to_base: 'Return ≤15s',
+  no_control_loss:'No Ctrl Loss',
+  within_time:    '≤3 min',
+  forklift:       'Forklift',
+};
+
+const RANK_EMOJI  = ['🥇','🥈','🥉'];
+const RANK_CLASS  = ['leading','second','third'];
+
+// ─── HELPERS ───────────────────────────────────────────────────────────
+function fmt(n) {
+  if (n == null) return '—';
+  const neg = n < 0;
+  const abs = Math.abs(n);
+  let s;
+  if (abs >= 1000000) s = (abs / 1000000).toFixed(abs % 1000000 === 0 ? 0 : 1) + 'M';
+  else                s = Math.round(abs / 1000) + 'K';
+  return (neg ? '−' : '') + s + ' u';
+}
+
+function fmtFull(n) {
+  if (n == null) return '—';
+  return (n < 0 ? '−' : '') + Math.abs(n).toLocaleString('en-US') + ' u';
+}
+
+function timeAgo(ts) {
+  const diff = Math.floor((Date.now() - ts) / 1000);
+  if (diff < 5)  return 'just now';
+  if (diff < 60) return diff + 's ago';
+  return Math.floor(diff / 60) + 'm ago';
+}
+
+function fmtElapsed(startTs) {
+  if (!startTs) return '—';
+  const s = Math.floor((Date.now() - startTs) / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return (h > 0 ? h + 'h ' : '') + m + 'min ' + String(sec).padStart(2,'0') + 's';
+}
+
+function fmtTimer(sec) {
+  if (!sec || sec <= 0) return '— : —';
+  return String(Math.floor(sec / 60)).padStart(2,'0') + ':' + String(sec % 60).padStart(2,'0');
+}
+
+function budgetClass(budget) {
+  if (budget > 14000000) return 'positive';
+  if (budget > 8000000)  return 'neutral';
+  if (budget > 0)        return 'warning';
+  return 'danger';
+}
+
+// ─── RENDER ────────────────────────────────────────────────────────────
+function render(data) {
+  const { teams, activeTab: phase, sessionStartTime, timerSecondsLeft } = data;
+
+  // Phase badge
+  document.getElementById('phase-badge').textContent = PHASE_LABELS[phase] || phase;
+
+  // Timer bar
+  const timerBar = document.getElementById('timer-bar');
+  const timerEl  = document.getElementById('pv-timer');
+  const elapsedEl = document.getElementById('pv-elapsed');
+
+  if (phase !== 'setup') {
+    timerBar.style.display = 'flex';
+    const tsl = timerSecondsLeft || 0;
+    timerEl.textContent = fmtTimer(tsl);
+    timerEl.className   = 'timer-big' + (tsl > 0 && tsl < 60 ? ' danger' : tsl < 180 ? ' warning' : '');
+    elapsedEl.textContent = fmtElapsed(sessionStartTime);
+  } else {
+    timerBar.style.display = 'none';
+  }
+
+  // Phase info cards
+  const pig = document.getElementById('phase-info-grid');
+  pig.innerHTML =
+    '<div class="phase-info-card">' +
+      '<div class="pi-label">🎯 Current Phase</div>' +
+      '<div class="pi-val">' + (PHASE_LABELS[phase] || phase) + '</div>' +
+      '<div class="pi-sub">' + (PHASE_TIPS[phase] || '') + '</div>' +
+    '</div>' +
+    '<div class="phase-info-card">' +
+      '<div class="pi-label">🛸 Teams Playing</div>' +
+      '<div class="pi-val">' + teams.length + '</div>' +
+      '<div class="pi-sub">Starting budget: 17,000,000 u per team</div>' +
+    '</div>';
+
+  // Sort teams by budget descending
+  const sorted = teams.slice().sort(function(a, b) { return b.budget - a.budget; });
+  const maxVotes = Math.max(1, Math.max.apply(null, teams.map(function(t) { return t._total_votes || 0; })));
+
+  // Winner banner (phase 6)
+  const wb = document.getElementById('winner-banner');
+  if (phase === 'ph6' && sorted.length > 0) {
+    wb.style.display = 'block';
+    document.getElementById('winner-name').textContent = '🏆 ' + sorted[0].name;
+    document.getElementById('winner-sub').textContent  =
+      'Highest Budget: ' + fmtFull(sorted[0].budget) +
+      (sorted[0]._effective_votes != null ? '  ·  🗳 ' + sorted[0]._effective_votes + ' votes' : '') +
+      '  ·  Congratulations!';
+  } else {
+    wb.style.display = 'none';
+  }
+
+  // Team cards
+  const grid = document.getElementById('teams-grid');
+  grid.innerHTML = sorted.map(function(t, rank) {
+    // Budget class
+    const bc = budgetClass(t.budget);
+
+    // Pills: features, bonuses, penalties, code tier
+    let pills = '';
+    if (t.code_tier) {
+      const tierLabel = { base:'🔴 Base', standard:'🟡 Standard', premium:'🟢 Premium' };
+      pills += '<span class="pill pill-bl">' + (tierLabel[t.code_tier] || t.code_tier) + '</span>';
+    }
+    (t.features || []).forEach(function(f) {
+      pills += '<span class="pill pill-feat">✓ ' + f + '</span>';
+    });
+    (t.bonuses || []).slice(0,2).forEach(function(b) {
+      pills += '<span class="pill pill-bon">★ ' + b + '</span>';
+    });
+    (t.penalties || []).slice(0,3).forEach(function(p) {
+      pills += '<span class="pill pill-pen">⚠ ' + (p.label || 'Penalty') + '</span>';
+    });
+
+    // Votes bar (show in ph5/ph6 or when votes exist)
+    let votesHtml = '';
+    const hasVotes = (t._total_votes || 0) > 0;
+    if (phase === 'ph5' || phase === 'ph6' || hasVotes) {
+      const total = t._total_votes || 0;
+      const eff   = t._effective_votes != null ? t._effective_votes : total;
+      const pen   = t._vote_penalty   || 0;
+      const pct   = Math.round((total / maxVotes) * 100);
+      votesHtml =
+        '<div class="votes-row">' +
+          '<span style="font-size:.7rem;color:rgba(255,255,255,.4);min-width:42px">🗳 Votes</span>' +
+          '<div class="vote-bar-bg"><div class="vote-bar-fill" style="width:' + pct + '%"></div></div>' +
+          '<span class="vote-count">' + eff +
+            (pen > 0 ? '<span style="color:var(--rd);font-size:.65rem"> −' + pen + '</span>' : '') +
+          '</span>' +
+        '</div>';
+    }
+
+    // Live test checks (show from ph3 onward)
+    let liveHtml = '';
+    if (t.live_test && ['ph3','ph4','ph5','ph6'].indexOf(phase) >= 0) {
+      const lt = t.live_test;
+      const checks = Object.keys(LIVE_LABELS).map(function(k) {
+        return '<span class="check-item ' + (lt[k] ? 'pass' : 'fail') + '">' +
+          (lt[k] ? '✓' : '○') + ' ' + LIVE_LABELS[k] +
+        '</span>';
+      });
+      if (checks.length) {
+        liveHtml = '<div class="live-section"><div class="live-checks">' + checks.join('') + '</div></div>';
+      }
+    }
+
+    return '<div class="team-card ' + (RANK_CLASS[rank] || '') + '">' +
+      '<div class="team-accent" style="background:' + t.color + '"></div>' +
+      '<div class="team-rank">' + (RANK_EMOJI[rank] || '') + '</div>' +
+      '<div class="team-name" style="color:' + t.color + '">' + t.name + '</div>' +
+      '<div class="budget-label">Remaining Budget</div>' +
+      '<div class="budget-amount ' + bc + '">' + fmt(t.budget) + '</div>' +
+      '<div class="pills">' + pills + '</div>' +
+      votesHtml +
+      liveHtml +
+    '</div>';
+  }).join('');
+
+  // Scoreboard (ph3+)
+  const sbWrap = document.getElementById('scoreboard-wrap');
+  const showSB = ['ph3','ph4','ph5','ph6'].indexOf(phase) >= 0;
+  sbWrap.style.display = showSB ? 'block' : 'none';
+  if (showSB) {
+    document.getElementById('sb-body').innerHTML = sorted.map(function(t, rank) {
+      const bc = t.budget > 8000000 ? 'var(--mn)' : t.budget > 4000000 ? '#fff' : 'var(--rd)';
+      return '<div class="sb-row ' + (rank === 0 ? 'rank1' : '') + '">' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+          '<span style="width:9px;height:9px;border-radius:50%;background:' + t.color + ';display:inline-block"></span>' +
+          '<strong style="color:' + t.color + '">' + t.name + '</strong>' +
+        '</div>' +
+        '<div style="font-weight:700;color:' + bc + '">' + fmt(t.budget) + '</div>' +
+        '<div style="color:rgba(255,255,255,.5)">' + (t.code_tier || '—') + '</div>' +
+        '<div style="color:rgba(255,255,255,.5)">' + (t.features || []).length + '</div>' +
+        '<div style="color:' + ((t.penalties || []).length > 0 ? 'var(--rd)' : 'rgba(255,255,255,.5)') + '">' +
+          (t.penalties || []).length +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+}
+
+// ─── SYNC LOOP ─────────────────────────────────────────────────────────
+let lastTs = 0;
+let staleTimeout = null;
+
+function syncDot(live) {
+  const dot  = document.getElementById('sync-dot');
+  const text = document.getElementById('sync-text');
+  dot.className = live ? 'dot-live' : 'dot-stale';
+  text.textContent = live ? 'Live' : 'Stale';
+}
+
+function poll() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) {
+      syncDot(false);
+      document.getElementById('sync-text').textContent = 'No data yet';
+      return;
+    }
+
+    const data = JSON.parse(raw);
+    const ts   = data.ts || 0;
+
+    // Update last-seen timestamp display
+    document.getElementById('last-update-text').textContent = 'Last update: ' + timeAgo(ts);
+
+    if (!data.teams || !data.teams.length) {
+      syncDot(false);
+      return;
+    }
+
+    // Show main content
+    document.getElementById('waiting-state').style.display = 'none';
+    document.getElementById('main-state').style.display    = 'block';
+
+    // Staleness indicator (>10s = stale)
+    const stale = (Date.now() - ts) > 10000;
+    syncDot(!stale);
+
+    render(data);
+    lastTs = ts;
+  } catch(e) {
+    syncDot(false);
+    document.getElementById('sync-text').textContent = 'Error';
+  }
+}
+
+// Poll every 1.5s
+poll();
+setInterval(poll, 1500);
+</script>
+</body>
+</html>
