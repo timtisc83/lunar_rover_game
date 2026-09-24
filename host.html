@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lunar Rover — Facilitator Host</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --tq: #00C1D4; --bl: #143AFF; --vi: #7200FE;
+  --mn: #5AFFC5; --rd: #FF4F4F; --or: #FF7E15;
+  --ye: #FFDE36; --wh: #FFFFFF; --bk: #000000;
+  --gl: #F4F6FB; --gm: #C8D0E0; --gd: #5A6480;
+  --sh: 0 4px 24px rgba(20,58,255,0.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Poppins','Segoe UI',sans-serif;background:var(--gl);color:var(--bk);min-height:100vh}
+
+/* NAV */
+.nav{background:var(--wh);border-bottom:3px solid var(--tq);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,193,212,.1)}
+.nav-logo{font-size:1.2rem;font-weight:800;letter-spacing:.04em}
+.nav-logo .t{color:var(--tq)}.nav-logo .b{color:var(--bl)}
+.nav-sub{font-size:.75rem;font-weight:600;color:var(--gd);border-left:2px solid var(--tq);padding-left:10px;margin-left:10px;text-transform:uppercase;letter-spacing:.06em}
+.nav-right{display:flex;align-items:center;gap:12px}
+.session-clock{font-size:1.5rem;font-weight:700;color:var(--bl);font-variant-numeric:tabular-nums;min-width:80px;text-align:right}
+
+/* TABS */
+.tabs{background:var(--wh);display:flex;overflow-x:auto;border-bottom:1px solid var(--gm);padding:0 16px}
+.tab{flex-shrink:0;padding:10px 14px;cursor:pointer;font-size:.72rem;font-weight:600;color:var(--gd);border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s;user-select:none}
+.tab:hover{color:var(--bl)}
+.tab.on{color:var(--bl);border-color:var(--bl)}
+.tab.done{color:var(--tq)}
+
+/* SCREENS */
+.screen{display:none}.screen.on{display:block}
+.main{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+
+/* CARD */
+.card{background:var(--wh);border-radius:14px;box-shadow:var(--sh);padding:24px 28px;margin-bottom:18px}
+.card-title{font-size:1rem;font-weight:700;color:var(--bl);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+
+/* PHASE HEADER */
+.ph-head{border-radius:14px;padding:24px 28px;margin-bottom:18px;color:var(--wh);position:relative;overflow:hidden}
+.ph-head h1{font-size:1.5rem;font-weight:800;margin-bottom:4px}
+.ph-head p{font-size:.83rem;opacity:.88;margin-top:4px}
+
+/* TIMER */
+.timer-big{font-size:3.5rem;font-weight:800;color:var(--bl);font-variant-numeric:tabular-nums;line-height:1}
+.timer-big.warn{color:var(--or)}.timer-big.danger{color:var(--rd)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;font-size:.82rem;font-weight:600;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:var(--bl);color:var(--wh)}.btn-primary:hover{background:#0e2dd0}
+.btn-tq{background:var(--tq);color:var(--wh)}.btn-tq:hover{opacity:.85}
+.btn-ghost{background:transparent;color:var(--bl);border:1.5px solid var(--bl)}.btn-ghost:hover{background:var(--gl)}
+.btn-danger{background:var(--rd);color:var(--wh)}
+.btn-success{background:var(--mn);color:var(--bk)}
+.btn-sm{padding:5px 10px;font-size:.76rem}
+.btn-lg{padding:12px 24px;font-size:.95rem}
+
+/* GRID */
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+
+/* TEAM CARD */
+.team-card{background:var(--wh);border-radius:12px;box-shadow:var(--sh);padding:18px 20px;border-top:4px solid var(--bl)}
+.team-card-name{font-size:1rem;font-weight:700;margin-bottom:8px}
+.team-budget{font-size:1.5rem;font-weight:800;color:var(--bl);margin:6px 0}
+.team-budget.over{color:var(--rd)}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:.7rem;font-weight:600}
+.badge-blue{background:rgba(20,58,255,.1);color:var(--bl)}
+.badge-tq{background:rgba(0,193,212,.12);color:var(--tq)}
+.badge-red{background:rgba(255,79,79,.12);color:var(--rd)}
+.badge-green{background:rgba(90,255,197,.2);color:#007a5a}
+
+/* DOT */
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;flex-shrink:0}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+th{background:var(--gl);padding:8px 10px;text-align:left;font-weight:600;color:var(--gd);border-bottom:2px solid var(--gm)}
+td{padding:8px 10px;border-bottom:1px solid var(--gl)}
+tr:hover td{background:#f9faff}
+
+/* TOAST */
+.toast-area{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--bk);color:var(--wh);padding:10px 18px;border-radius:10px;font-size:.82rem;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.25);animation:slideIn .25s ease;max-width:300px}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* INPUT */
+input[type=text],input[type=number],select{padding:7px 10px;border:1.5px solid var(--gm);border-radius:8px;font-family:inherit;font-size:.83rem;outline:none;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--bl)}
+label{font-size:.82rem;color:var(--gd);font-weight:500}
+
+/* INFO BOX */
+.info{background:rgba(0,193,212,.07);border:1.5px solid var(--tq);border-radius:10px;padding:12px 16px;font-size:.82rem;color:#005f6b;margin-bottom:14px}
+.tip{background:rgba(20,58,255,.06);border:1.5px solid var(--bl);border-radius:10px;padding:10px 14px;font-size:.8rem;color:var(--bl);margin-bottom:12px}
+
+/* VOTE TABLE */
+.vote-table th,.vote-table td{text-align:center}
+.vote-table td:first-child{text-align:left}
+.vote-table input{width:44px;text-align:center}
+
+/* SECTION */
+.section-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gd);margin-bottom:8px}
+
+/* RESULT CARDS */
+.result-card{border-radius:14px;padding:18px;text-align:center;border:2px solid var(--gm)}
+.result-card.gold{border-color:var(--ye);background:rgba(255,222,54,.08)}
+.result-card.silver{border-color:var(--gm);background:rgba(200,208,224,.1)}
+.result-card.bronze{border-color:var(--or);background:rgba(255,126,21,.07)}
+.result-rank{font-size:2rem}
+.result-team{font-size:1rem;font-weight:700;margin:4px 0}
+.result-budget{font-size:1.4rem;font-weight:800;color:var(--bl)}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:6px}
+.checklist li{display:flex;align-items:center;gap:8px;font-size:.82rem}
+
+/* RESPONSIVE */
+@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr}.main{padding:14px 12px 40px}}
+
+/* SYNC INDICATOR */
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--mn);display:inline-block;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div style="display:flex;align-items:center">
+    <div class="nav-logo"><span class="t">OD</span><span class="b">CE</span></div>
+    <div class="nav-sub">Lunar Rover — Host</div>
+  </div>
+  <div class="nav-right">
+    <span class="sync-dot" title="Auto-syncing to player screen"></span>
+    <span style="font-size:.72rem;color:var(--gd)">Player screen syncing</span>
+    <span class="session-clock" id="session-clock">00:00</span>
+  </div>
+</nav>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab on" id="tab-setup" onclick="goTo('setup')">⚙️ Setup</div>
+  <div class="tab" id="tab-ph0" onclick="goTo('ph0')">0 · Intro</div>
+  <div class="tab" id="tab-ph1" onclick="goTo('ph1')">1 · Planning</div>
+  <div class="tab" id="tab-ph2" onclick="goTo('ph2')">2 · Build</div>
+  <div class="tab" id="tab-ph2a" onclick="goTo('ph2a')" style="display:none">2A · Pitch 1</div>
+  <div class="tab" id="tab-ph3" onclick="goTo('ph3')">3 · Validation</div>
+  <div class="tab" id="tab-ph4" onclick="goTo('ph4')">4 · Alignment</div>
+  <div class="tab" id="tab-ph5" onclick="goTo('ph5')">5 · Final Pitch</div>
+  <div class="tab" id="tab-ph6" onclick="goTo('ph6')">6 · Results</div>
+</div>
+
+<div class="toast-area" id="toast-area"></div>
+
+<!-- ═══════════════════════════ SETUP ═══════════════════════════ -->
+<div class="screen on" id="screen-setup">
+<div class="main">
+  <div class="card">
+    <div class="card-title">🚀 Session Setup</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+      <label>Date:</label>
+      <input type="text" id="session-date" style="width:140px">
+      <label>Facilitator:</label>
+      <input type="text" id="facilitator-name" placeholder="Your name" style="width:180px">
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+      <label>Number of teams:</label>
+      <button class="btn btn-ghost btn-sm" onclick="changeTeams(-1)">−</button>
+      <strong id="team-count-display" style="font-size:1.2rem;min-width:24px;text-align:center">3</strong>
+      <button class="btn btn-ghost btn-sm" onclick="changeTeams(1)">+</button>
+    </div>
+    <div id="team-name-inputs" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:20px"></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+      <label>Session Format:</label>
+      <select id="session-format" style="min-width:280px">
+        <option value="full">Full Session (~4h) — both pitches</option>
+        <option value="no-pitch1">3h Variant — skip 1st pitch</option>
+        <option value="pre-built">3h Variant — pre-built chassis</option>
+      </select>
+    </div>
+    <div id="format-description" style="margin-bottom:20px"></div>
+    <div class="tip">💡 Open <strong>player.html</strong> in a second browser window (or on the projector) — it will automatically sync with this dashboard via shared browser storage.</div>
+    <button class="btn btn-primary btn-lg" onclick="startSession()">▶ Start Session</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════ PHASE 0 ══════════════════════════ -->
+<div class="screen" id="screen-ph0">
+<div class="main">
+  <div class="ph-head" style="background:linear-gradient(135deg,var(--bl),var(--vi))">
+    <h1>Phase 0 · Introduction</h1>
+    <p>Introduce the simulation. Explain roles, budget (€17M), and game rules.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">⏱ Phase Timer</div>
+    <div class="timer-big" id="timer-ph0">60:00</div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="startTimer('ph0',60)">▶ Start (60 min)</button>
+      <button class="btn btn-ghost" onclick="pauseTimer()">⏸ Pause</button>
+      <button class="btn btn-ghost" onclick="resetTimer('ph0',60)">↺ Reset</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 Key Rules to Cover</div>
+    <ul style="padding-left:18px;font-size:.85rem;display:flex;flex-direction:column;gap:8px">
+      <li>Starting budget: <strong>€17,000,000</strong> per team</li>
+      <li>Code tiers: Base (free) · Standard (€4M) · Premium (€8M)</li>
+      <li>Optional features: Sample collection €1.5M · Hazard detection €800K · LED €1M · Terrain adaptation €1M</li>
+      <li>Support services: Consultation €500K · Emergency debug €700K · Re-test €1M</li>
+      <li>Free re-tests: 2. Each extra costs €500K penalty</li>
+      <li>Bonuses (€1M each): Safe return ≤15s · All requirements met · No penalties · No system failure</li>
+      <li>Vote penalty: Teams failing minimum requirements lose 50% of votes received</li>
+    </ul>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-tq btn-lg" onclick="goTo('ph1')">Next: Phase 1 →</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════ PHASE 1 ══════════════════════════ -->
+<div class="screen" id="screen-ph1">
+<div class="main">
+  <div class="ph-head" style="background:linear-gradient(135deg,#0062cc,var(--bl))">
+    <h1>Phase 1 · Planning &amp; Design</h1>
+    <p>Teams plan their rover, discuss roles, and record initial budget choices.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">⏱ Phase Timer</div>
+    <div class="timer-big" id="timer-ph1">10:00</div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="startTimer('ph1',10)">▶ Start (10 min)</button>
+      <button class="btn btn-ghost" onclick="pauseTimer()">⏸ Pause</button>
+      <button class="btn btn-ghost" onclick="resetTimer('ph1',10)">↺ Reset</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🛒 Code Tier Selection</div>
+    <div class="tip">Record each team's chosen code tier. Budget is deducted immediately.</div>
+    <div id="code-tier-panel"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔧 Feature Purchases</div>
+    <div class="tip">Add optional features as teams decide. Each feature deducts from team budget.</div>
+    <div id="feature-panel"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">💰 Budget Overview</div>
+    <div id="budget-overview-ph1"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-tq btn-lg" onclick="goTo('ph2')">Next: Phase 2 →</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════ PHASE 2 ══════════════════════════ -->
+<div class="screen" id="screen-ph2">
+<div class="main">
+  <div class="ph-head" style="background:linear-gradient(135deg,var(--tq),#006a80)">
+    <h1>Phase 2 · Build Phase</h1>
+    <p>Teams build their rovers. Track support services used during this phase.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">⏱ Phase Timer</div>
+    <div class="timer-big" id="timer-ph2">120:00</div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="startTimer('ph2',120)">▶ Start (120 min)</button>
+      <button class="btn btn-ghost" onclick="pauseTimer()">⏸ Pause</button>
+      <button class="btn btn-ghost" onclick="resetTimer('ph2',120)">↺ Reset</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🆘 Support Services Tracker</div>
+    <div class="tip">€500K per consultation · €700K emergency debug · €1M re-test · 3+ consultations = €500K penalty</div>
+    <div id="support-panel"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">💰 Live Budget</div>
+    <div id="budget-overview-ph2"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-tq btn-lg" id="ph2-next-btn" onclick="nextAfterBuild()">Next: Phase 2A →</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════ PHASE 2A ═════════════════════════ -->
+<div class="screen" id="screen-ph2a">
+<div class="main">
+  <div class="ph-head" style="background:linear-gradient(135deg,var(--vi),#3d00a0)">
+    <h1>Phase 2A · First Pitch</h1>
+    <p>Teams pitch their innovation strategy. Lock strategies after pitching.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">⏱ Pitch Timer</div>
+    <div class="timer-big" id="timer-pitch">20:00</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap">
+      <label>Minutes per pitch:</label>
+      <input type="number" id="pitch-minutes" value="20" min="1" max="60" style="width:60px">
+      <button class="btn btn-primary" onclick="startPitchTimer()">▶ Start</button>
+      <button class="btn btn-ghost" onclick="pauseTimer()">⏸ Pause</button>
+      <button class="btn btn-ghost" onclick="resetPitchTimer()">↺ Reset</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📝 Pitch Notes &amp; Strategy Lock</div>
+    <div id="pitch-notes-panel"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-tq btn-lg" onclick="goTo('ph3')">Next: Phase 3 →</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════ PHASE 3 ══════════════════════════ -->
+<div class="screen" id="screen-ph3">
+<div class="main">
+  <div class="ph-head" style="background:linear-gradient(135deg,#007a5a,var(--mn))">
+    <h1>Phase 3 · Validation &amp; Testing</h1>
+    <p>Teams test their rovers. Track test runs — first 2 are free.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">⏱ Phase Timer</div>
+    <div class="timer-big" id="timer-ph3">10:00</div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="startTimer('ph3',10)">▶ Start (10 min)</button>
+      <button class="btn btn-ghost" onclick="pauseTimer()">⏸ Pause</button>
+      <button class="btn btn-ghost" onclick="resetTimer('ph3',10)">↺ Reset</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔁 Test Run Tracker</div>
+    <div class="tip">First 2 test runs are free. Each additional run = €500K penalty.</div>
+    <div id="test-run-panel"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-tq btn-lg" onclick="goTo('ph4')">Next: Phase 4 →</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════ PHASE 4 ══════════════════════════ -->
+<div class="screen" id="screen-ph4">
+<div class="main">
+  <div class="ph-head" style="background:linear-gradient(135deg,var(--or),#cc4400)">
+    <h1>Phase 4 · Alignment Check</h1>
+    <p>Cross-functional teams verify all departments are aligned. Misalignment = −€500K.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">⏱ Phase Timer</div>
+    <div class="timer-big" id="timer-ph4">10:00</div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="startTimer('ph4',10)">▶ Start (10 min)</button>
+      <button class="btn btn-ghost" onclick="pauseTimer()">⏸ Pause</button>
+      <button class="btn btn-ghost" onclick="resetTimer('ph4',10)">↺ Reset</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">✅ Alignment Status per Team</div>
+    <div id="alignment-panel"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-tq btn-lg" onclick="goTo('ph5')">Next: Phase 5 →</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════ PHASE 5 ══════════════════════════ -->
+<div class="screen" id="screen-ph5">
+<div class="main">
+  <div class="ph-head" style="background:linear-gradient(135deg,var(--rd),#8a0000)">
+    <h1>Phase 5 · Final Pitch &amp; Live Test</h1>
+    <p>Final presentations + live rover test. Record pass/fail for each requirement.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">⏱ Final Pitch Timer</div>
+    <div class="timer-big" id="timer-finalpitch">30:00</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap">
+      <label>Minutes:</label>
+      <input type="number" id="final-pitch-minutes" value="30" min="1" max="60" style="width:60px">
+      <button class="btn btn-primary" onclick="startFinalPitchTimer()">▶ Start</button>
+      <button class="btn btn-ghost" onclick="pauseTimer()">⏸ Pause</button>
+      <button class="btn btn-ghost" onclick="resetFinalPitchTimer()">↺ Reset</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🤖 Live Test Results</div>
+    <div class="tip">Check off each capability your rover demonstrates. Mission time in seconds.</div>
+    <div id="live-test-panel"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">⚠️ Final Pitch Penalties</div>
+    <div id="final-pitch-penalty-panel"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-tq btn-lg" onclick="goTo('ph6')">Next: Phase 6 →</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════ PHASE 6 ══════════════════════════ -->
+<div class="screen" id="screen-ph6">
+<div class="main">
+  <div class="ph-head" style="background:linear-gradient(135deg,var(--ye),var(--or))">
+    <h1 style="color:var(--bk)">Phase 6 · Voting &amp; Results</h1>
+    <p style="color:#333">Teams vote on each other's performance. Final budget rankings revealed.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">🗳 Peer Voting Matrix</div>
+    <div class="tip">Each team scores all other teams 0–5 on each criterion. Cannot vote for themselves.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px" id="vote-tabs"></div>
+    <div id="vote-matrix-panel"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🏆 Bonuses</div>
+    <div id="bonus-panel"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📊 Final Results</div>
+    <div id="results-panel"></div>
+  </div>
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════════════════════════
+const START_BUDGET = 17000000;
+const TEAM_COLORS = ['#143AFF','#00C1D4','#7200FE','#FF7E15','#FF4F4F','#5AFFC5'];
+const VOTE_CRITERIA = ['Mission completion','Rover stability','Feature integration','Investment decisions','Communication'];
+const LS_KEY = 'lunar_rover_session';
+
+const COSTS = {
+  standard: 4000000, premium: 8000000,
+  sample_collection: 1500000, hazard_detection: 800000,
+  led: 1000000, terrain_adaptation: 1000000,
+  other_innovation: 1000000,
+  consultation: 500000, emergency_debug: 700000, retest: 1000000
+};
+const PENALTIES = {
+  excessive_retest: 500000, excessive_consultations: 500000,
+  misalignment: 500000, time_violation: 100000,
+  innovation_change: 200000, design_freeze: 500000
+};
+const BONUSES = {
+  safe_return: 1000000, all_requirements: 1000000,
+  no_penalties: 1000000, no_system_failure: 1000000
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════
+let numTeams = 3;
+let teams = [];
+let currentScreen = 'setup';
+let selectedVoterIdx = 0;
+let sessionStartTime = null;
+let sessionInterval = null;
+let timerInterval = null;
+let timerSecondsLeft = 0;
+let activeTimerEl = null;
+let pitchInterval = null;
+let pitchSecondsLeft = 1200;
+let finalPitchInterval = null;
+let finalPitchSecondsLeft = 1800;
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+window.onload = function() {
+  const d = new Date();
+  document.getElementById('session-date').value = d.toISOString().split('T')[0];
+  renderTeamNameInputs();
+  updateFormatDescription();
+  document.getElementById('session-format').addEventListener('change', updateFormatDescription);
+};
+
+function getFormat() {
+  return document.getElementById('session-format').value;
+}
+
+const FORMAT_INFO = {
+  'full': {
+    color: '#143AFF',
+    icon: '🕐',
+    title: 'Full Session (~4h)',
+    desc: 'All 9 phases including both pitches. Teams pitch their innovation strategy in Phase 2A, then deliver a final pitch in Phase 5. Recommended for full-day workshops.',
+    phases: ['Phase 0 (60 min)', 'Phase 1 (10 min)', 'Phase 2 (120 min)', 'Phase 2A Pitch 1 (20 min)', 'Phase 3 (10 min)', 'Phase 4 (10 min)', 'Phase 5 (30 min)', 'Phase 6 (20 min)']
+  },
+  'no-pitch1': {
+    color: '#00C1D4',
+    icon: '⏱',
+    title: '3h Variant — Skip 1st Pitch',
+    desc: 'Phase 2A (1st marketing pitch) is removed. Teams go directly from Build to Validation. Suitable when time is limited but teams still build from scratch.',
+    phases: ['Phase 0 (10 min)', 'Phase 1 (15 min)', 'Phase 2 (50 min)', 'Phase 3 (20 min)', 'Phase 4 (10 min)', 'Phase 5 (30 min)', 'Phase 6 (20 min)']
+  },
+  'pre-built': {
+    color: '#7200FE',
+    icon: '🔧',
+    title: '3h Variant — Pre-built Chassis',
+    desc: 'Teams receive a pre-built chassis. Phase 1 planning is shortened, Phase 2A pitch is skipped, and teams focus on software/features/strategy rather than hardware.',
+    phases: ['Phase 0 (5 min)', 'Phase 1 (10 min)', 'Phase 2 (40 min)', 'Phase 3 (20 min)', 'Phase 4 (10 min)', 'Phase 5 (30 min)', 'Phase 6 (20 min)']
+  }
+};
+
+function updateFormatDescription() {
+  const fmt = getFormat();
+  const info = FORMAT_INFO[fmt];
+  const c = document.getElementById('format-description');
+  c.innerHTML = '<div style="background:rgba('+hexToRgb(info.color)+',.06);border:1.5px solid '+info.color+';border-radius:10px;padding:14px 18px">' +
+    '<div style="font-weight:700;color:'+info.color+';margin-bottom:6px;font-size:.9rem">'+info.icon+' '+info.title+'</div>' +
+    '<div style="font-size:.82rem;color:var(--gd);margin-bottom:10px">'+info.desc+'</div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+    info.phases.map(function(p) { return '<span style="background:rgba('+hexToRgb(info.color)+',.1);color:'+info.color+';border-radius:20px;padding:2px 10px;font-size:.72rem;font-weight:600">'+p+'</span>'; }).join('') +
+    '</div></div>';
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return r+','+g+','+b;
+}
+
+function makeTeam(i) {
+  return {
+    id: i,
+    name: 'Team ' + (i+1),
+    color: TEAM_COLORS[i % TEAM_COLORS.length],
+    budget: START_BUDGET,
+    code_tier: null,         // null | 'base' | 'standard' | 'premium'
+    features: [],            // array of feature keys
+    consultations: 0,
+    emergency_debug: 0,
+    retests: 0,
+    penalties: [],           // [{label, amount}]
+    bonuses: [],             // array of bonus keys
+    votes: {},               // votes[voterIdx] = [criterion scores]
+    pitch_notes: '',
+    pitch_locked: false,
+    misaligned: false,
+    live: {
+      forward: false, reverse: false, left: false, right: false,
+      return_to_base: false, no_control_loss: false,
+      within_time: false, forklift: false, system_failure: false,
+      mission_seconds: null
+    }
+  };
+}
+
+function renderTeamNameInputs() {
+  const c = document.getElementById('team-name-inputs');
+  c.innerHTML = '';
+  for (let i = 0; i < numTeams; i++) {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;flex-direction:column;gap:4px';
+    div.innerHTML = '<label>Team ' + (i+1) + ' name:</label><input type="text" id="tname-'+i+'" value="Team '+(i+1)+'" style="width:100%">';
+    c.appendChild(div);
+  }
+}
+
+function changeTeams(d) {
+  numTeams = Math.max(2, Math.min(8, numTeams + d));
+  document.getElementById('team-count-display').textContent = numTeams;
+  renderTeamNameInputs();
+}
+
+function startSession() {
+  teams = [];
+  for (let i = 0; i < numTeams; i++) {
+    const t = makeTeam(i);
+    const inp = document.getElementById('tname-' + i);
+    if (inp) t.name = inp.value.trim() || t.name;
+    teams.push(t);
+  }
+
+  // Apply session format: show/hide Phase 2A tab
+  const fmt = getFormat();
+  const tab2a = document.getElementById('tab-ph2a');
+  const ph2NextBtn = document.getElementById('ph2-next-btn');
+  if (fmt === 'full') {
+    tab2a.style.display = '';
+    if (ph2NextBtn) { ph2NextBtn.textContent = 'Next: Phase 2A →'; }
+  } else {
+    // no-pitch1 and pre-built both skip Phase 2A
+    tab2a.style.display = 'none';
+    if (ph2NextBtn) { ph2NextBtn.textContent = 'Next: Phase 3 →'; }
+  }
+  // Also store format in state so syncToLS can pass it to player screen
+  window._sessionFormat = fmt;
+
+  sessionStartTime = Date.now();
+  sessionInterval = setInterval(function() {
+    const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+    document.getElementById('session-clock').textContent = fmt_time(elapsed, true);
+  }, 1000);
+  goTo('ph0');
+  renderAll();
+  syncToLS();
+  toast('Session started! 🚀 Format: ' + FORMAT_INFO[fmt].title);
+}
+
+// Format-aware navigation after Phase 2 Build
+function nextAfterBuild() {
+  const fmt = getFormat();
+  if (fmt === 'full') {
+    goTo('ph2a');
+  } else {
+    goTo('ph3');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════════════
+const SCREENS = ['setup','ph0','ph1','ph2','ph2a','ph3','ph4','ph5','ph6'];
+const PHASE_NAMES = ['Setup','Phase 0 · Intro','Phase 1 · Planning','Phase 2 · Build','Phase 2A · Pitch 1','Phase 3 · Validation','Phase 4 · Alignment','Phase 5 · Final Pitch','Phase 6 · Results'];
+
+function goTo(id) {
+  SCREENS.forEach(function(s) {
+    const sc = document.getElementById('screen-' + s);
+    const tb = document.getElementById('tab-' + s);
+    if (sc) sc.className = 'screen' + (s === id ? ' on' : '');
+    if (tb) tb.className = 'tab' + (s === id ? ' on' : '');
+  });
+  currentScreen = id;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  syncToLS();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TIMERS
+// ═══════════════════════════════════════════════════════════════
+function startTimer(phaseId, minutes) {
+  clearInterval(timerInterval);
+  timerSecondsLeft = minutes * 60;
+  activeTimerEl = 'timer-' + phaseId;
+  runTimer();
+}
+function runTimer() {
+  updateTimerDisplay();
+  timerInterval = setInterval(function() {
+    timerSecondsLeft--;
+    updateTimerDisplay();
+    if (timerSecondsLeft <= 0) {
+      clearInterval(timerInterval);
+      toast('⏰ Time is up!');
+    }
+  }, 1000);
+}
+function updateTimerDisplay() {
+  const el = document.getElementById(activeTimerEl);
+  if (!el) return;
+  el.textContent = fmt_time(timerSecondsLeft);
+  el.className = 'timer-big' + (timerSecondsLeft < 60 ? ' danger' : timerSecondsLeft < 180 ? ' warn' : '');
+}
+function pauseTimer() { clearInterval(timerInterval); clearInterval(pitchInterval); clearInterval(finalPitchInterval); toast('Paused.'); }
+function resetTimer(phaseId, minutes) {
+  clearInterval(timerInterval);
+  timerSecondsLeft = minutes * 60;
+  activeTimerEl = 'timer-' + phaseId;
+  const el = document.getElementById(activeTimerEl);
+  if (el) { el.textContent = fmt_time(timerSecondsLeft); el.className = 'timer-big'; }
+}
+
+function startPitchTimer() {
+  clearInterval(pitchInterval);
+  pitchSecondsLeft = parseInt(document.getElementById('pitch-minutes').value) * 60;
+  pitchInterval = setInterval(function() {
+    pitchSecondsLeft--;
+    const el = document.getElementById('timer-pitch');
+    if (el) {
+      el.textContent = fmt_time(pitchSecondsLeft);
+      el.className = 'timer-big' + (pitchSecondsLeft < 30 ? ' danger' : pitchSecondsLeft < 60 ? ' warn' : '');
+    }
+    if (pitchSecondsLeft <= 0) { clearInterval(pitchInterval); toast('⏰ Pitch time up!'); }
+  }, 1000);
+}
+function resetPitchTimer() {
+  clearInterval(pitchInterval);
+  pitchSecondsLeft = parseInt(document.getElementById('pitch-minutes').value) * 60;
+  const el = document.getElementById('timer-pitch');
+  if (el) { el.textContent = fmt_time(pitchSecondsLeft); el.className = 'timer-big'; }
+}
+
+function startFinalPitchTimer() {
+  clearInterval(finalPitchInterval);
+  finalPitchSecondsLeft = parseInt(document.getElementById('final-pitch-minutes').value) * 60;
+  finalPitchInterval = setInterval(function() {
+    finalPitchSecondsLeft--;
+    const el = document.getElementById('timer-finalpitch');
+    if (el) {
+      el.textContent = fmt_time(finalPitchSecondsLeft);
+      el.className = 'timer-big' + (finalPitchSecondsLeft < 30 ? ' danger' : finalPitchSecondsLeft < 60 ? ' warn' : '');
+    }
+    if (finalPitchSecondsLeft <= 0) { clearInterval(finalPitchInterval); toast('⏰ Pitch time up!'); }
+  }, 1000);
+}
+function resetFinalPitchTimer() {
+  clearInterval(finalPitchInterval);
+  finalPitchSecondsLeft = parseInt(document.getElementById('final-pitch-minutes').value) * 60;
+  const el = document.getElementById('timer-finalpitch');
+  if (el) { el.textContent = fmt_time(finalPitchSecondsLeft); el.className = 'timer-big'; }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDER ALL PANELS
+// ═══════════════════════════════════════════════════════════════
+function renderAll() {
+  renderCodeTiers();
+  renderFeaturePanel();
+  renderBudgetOverview('budget-overview-ph1');
+  renderBudgetOverview('budget-overview-ph2');
+  renderSupportPanel();
+  renderPitchNotes();
+  renderTestRunPanel();
+  renderAlignmentPanel();
+  renderLiveTestPanel();
+  renderFinalPitchPenalties();
+  renderBonusPanel();
+  renderVoteTabs();
+  renderVoteMatrix();
+  calculateResults();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CODE TIERS
+// ═══════════════════════════════════════════════════════════════
+function renderCodeTiers() {
+  const c = document.getElementById('code-tier-panel');
+  if (!c) return;
+  const tiers = [
+    { key: 'base', label: 'Base', cost: 0, desc: 'Free · Basic functions' },
+    { key: 'standard', label: 'Standard', cost: 4000000, desc: '€4M · Enhanced control' },
+    { key: 'premium', label: 'Premium', cost: 8000000, desc: '€8M · Full feature set' }
+  ];
+  c.innerHTML = teams.map(function(t, i) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gl);flex-wrap:wrap">' +
+      '<span class="dot" style="background:' + t.color + '"></span>' +
+      '<strong style="min-width:100px">' + t.name + '</strong>' +
+      tiers.map(function(tier) {
+        const active = t.code_tier === tier.key;
+        return '<button class="btn btn-sm ' + (active ? 'btn-primary' : 'btn-ghost') + '" onclick="setCodeTier(' + i + ',\'' + tier.key + '\')">' +
+          tier.label + ' (' + fmt_money(tier.cost) + ')' + (active ? ' ✓' : '') + '</button>';
+      }).join('') +
+      '</div>';
+  }).join('');
+}
+
+function setCodeTier(teamIdx, tier) {
+  const t = teams[teamIdx];
+  // Remove old cost
+  if (t.code_tier === 'standard') t.budget += COSTS.standard;
+  if (t.code_tier === 'premium') t.budget += COSTS.premium;
+  t.code_tier = tier;
+  if (tier === 'standard') t.budget -= COSTS.standard;
+  if (tier === 'premium') t.budget -= COSTS.premium;
+  renderCodeTiers();
+  renderBudgetOverview('budget-overview-ph1');
+  syncToLS();
+  toast(t.name + ': ' + tier + ' code selected.');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  FEATURE PANEL
+// ═══════════════════════════════════════════════════════════════
+const FEATURE_LIST = [
+  { key: 'sample_collection', label: 'Sample Collection', cost: 1500000 },
+  { key: 'hazard_detection', label: 'Hazard Detection', cost: 800000 },
+  { key: 'led', label: 'LED Lighting', cost: 1000000 },
+  { key: 'terrain_adaptation', label: 'Terrain Adaptation', cost: 1000000 },
+  { key: 'other_innovation', label: 'Other Innovation', cost: 1000000 }
+];
+
+function renderFeaturePanel() {
+  const c = document.getElementById('feature-panel');
+  if (!c) return;
+  c.innerHTML = teams.map(function(t, i) {
+    return '<div style="padding:10px 0;border-bottom:1px solid var(--gl)">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
+      '<span class="dot" style="background:' + t.color + '"></span>' +
+      '<strong>' + t.name + '</strong></div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+      FEATURE_LIST.map(function(f) {
+        const active = t.features.includes(f.key);
+        return '<button class="btn btn-sm ' + (active ? 'btn-tq' : 'btn-ghost') + '" onclick="toggleFeature(' + i + ',\'' + f.key + '\')">' +
+          (active ? '✓ ' : '') + f.label + ' (' + fmt_money(f.cost) + ')</button>';
+      }).join('') +
+      '</div></div>';
+  }).join('');
+}
+
+function toggleFeature(teamIdx, key) {
+  const t = teams[teamIdx];
+  const feature = FEATURE_LIST.find(function(f) { return f.key === key; });
+  if (!feature) return;
+  if (t.features.includes(key)) {
+    t.features = t.features.filter(function(k) { return k !== key; });
+    t.budget += feature.cost;
+    toast(t.name + ': ' + feature.label + ' removed.');
+  } else {
+    t.features.push(key);
+    t.budget -= feature.cost;
+    toast(t.name + ': ' + feature.label + ' purchased.');
+  }
+  renderFeaturePanel();
+  renderBudgetOverview('budget-overview-ph1');
+  syncToLS();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SUPPORT PANEL
+// ═══════════════════════════════════════════════════════════════
+function renderSupportPanel() {
+  const c = document.getElementById('support-panel');
+  if (!c) return;
+  c.innerHTML = teams.map(function(t, i) {
+    const tooManyConsult = t.consultations > 3;
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gl);flex-wrap:wrap">' +
+      '<span class="dot" style="background:' + t.color + '"></span>' +
+      '<strong style="min-width:90px">' + t.name + '</strong>' +
+      '<span class="badge badge-blue">💬 ' + t.consultations + ' consult' + (t.consultations !== 1 ? 's' : '') + (tooManyConsult ? ' ⚠️' : '') + '</span>' +
+      '<span class="badge badge-tq">🔧 ' + t.emergency_debug + ' debug</span>' +
+      '<span class="badge badge-red">🔁 ' + t.retests + ' retest' + (t.retests !== 1 ? 's' : '') + '</span>' +
+      '<div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">' +
+      '<button class="btn btn-ghost btn-sm" onclick="addSupport(' + i + ',\'consultation\')">+ Consult (€500K)</button>' +
+      '<button class="btn btn-ghost btn-sm" onclick="addSupport(' + i + ',\'emergency_debug\')">+ Debug (€700K)</button>' +
+      '<button class="btn btn-ghost btn-sm" onclick="addSupport(' + i + ',\'retest\')">+ Re-test (€1M)</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+function addSupport(teamIdx, type) {
+  const t = teams[teamIdx];
+  if (type === 'consultation') {
+    t.consultations++;
+    t.budget -= COSTS.consultation;
+    if (t.consultations > 3) {
+      t.budget -= PENALTIES.excessive_consultations;
+      t.penalties.push({ label: 'Excessive consultations (' + t.consultations + ')', amount: PENALTIES.excessive_consultations });
+      toast('⚠️ ' + t.name + ': Consultation #' + t.consultations + ' — excess penalty!');
+    } else {
+      toast(t.name + ': Consultation #' + t.consultations);
+    }
+  } else if (type === 'emergency_debug') {
+    t.emergency_debug++;
+    t.budget -= COSTS.emergency_debug;
+    toast(t.name + ': Emergency debug');
+  } else if (type === 'retest') {
+    t.retests++;
+    t.budget -= COSTS.retest;
+    toast(t.name + ': Re-test added');
+  }
+  renderSupportPanel();
+  renderBudgetOverview('budget-overview-ph2');
+  syncToLS();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BUDGET OVERVIEW
+// ═══════════════════════════════════════════════════════════════
+function renderBudgetOverview(elId) {
+  const c = document.getElementById(elId);
+  if (!c) return;
+  c.innerHTML = '<div class="grid3">' +
+    teams.map(function(t) {
+      const over = t.budget < 0;
+      return '<div class="team-card" style="border-top-color:' + t.color + '">' +
+        '<div class="team-card-name"><span class="dot" style="background:' + t.color + ';margin-right:6px"></span>' + t.name + '</div>' +
+        '<div class="team-budget' + (over ? ' over' : '') + '">' + fmt_money(t.budget) + '</div>' +
+        '<div style="font-size:.75rem;color:var(--gd);margin-top:4px">' +
+        (t.code_tier ? t.code_tier + ' code' : 'no code selected') + ' · ' +
+        t.features.length + ' feature' + (t.features.length !== 1 ? 's' : '') +
+        '</div></div>';
+    }).join('') +
+    '</div>';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PITCH NOTES
+// ═══════════════════════════════════════════════════════════════
+function renderPitchNotes() {
+  const c = document.getElementById('pitch-notes-panel');
+  if (!c) return;
+  c.innerHTML = teams.map(function(t, i) {
+    return '<div style="padding:12px 0;border-bottom:1px solid var(--gl)">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
+      '<span class="dot" style="background:' + t.color + '"></span>' +
+      '<strong>' + t.name + '</strong>' +
+      '<span class="badge ' + (t.pitch_locked ? 'badge-tq' : 'badge-blue') + '" style="margin-left:auto">' + (t.pitch_locked ? '🔒 Locked' : '📝 Open') + '</span>' +
+      '</div>' +
+      '<textarea rows="2" style="width:100%;border:1.5px solid var(--gm);border-radius:8px;padding:7px;font-family:inherit;font-size:.82rem;resize:vertical" ' +
+      'placeholder="Innovation strategy notes..." oninput="updatePitchNote(' + i + ',this.value)">' + t.pitch_notes + '</textarea>' +
+      '<button class="btn btn-sm ' + (t.pitch_locked ? 'btn-danger' : 'btn-ghost') + '" style="margin-top:6px" onclick="togglePitchLock(' + i + ')">' +
+      (t.pitch_locked ? '🔓 Unlock Strategy' : '🔒 Lock Strategy') + '</button></div>';
+  }).join('');
+}
+
+function updatePitchNote(i, val) { teams[i].pitch_notes = val; syncToLS(); }
+function togglePitchLock(i) {
+  teams[i].pitch_locked = !teams[i].pitch_locked;
+  renderPitchNotes();
+  toast(teams[i].name + ': strategy ' + (teams[i].pitch_locked ? 'locked' : 'unlocked'));
+  syncToLS();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TEST RUN PANEL
+// ═══════════════════════════════════════════════════════════════
+function renderTestRunPanel() {
+  const c = document.getElementById('test-run-panel');
+  if (!c) return;
+  c.innerHTML = teams.map(function(t, i) {
+    const extra = Math.max(0, t.retests - 2);
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gl);flex-wrap:wrap">' +
+      '<span class="dot" style="background:' + t.color + '"></span>' +
+      '<strong style="min-width:90px">' + t.name + '</strong>' +
+      '<span class="badge ' + (t.retests > 2 ? 'badge-red' : 'badge-tq') + '">' + t.retests + ' run' + (t.retests !== 1 ? 's' : '') + '</span>' +
+      (extra > 0 ? '<span class="badge badge-red">⚠️ ' + extra + ' excess → ' + fmt_money(extra * PENALTIES.excessive_retest) + ' penalty</span>' : '') +
+      '<div style="margin-left:auto;display:flex;gap:6px">' +
+      '<button class="btn btn-ghost btn-sm" onclick="addTestRun(' + i + ')">+ Test Run</button>' +
+      (t.retests > 0 ? '<button class="btn btn-danger btn-sm" onclick="removeTestRun(' + i + ')">− Undo</button>' : '') +
+      '</div></div>';
+  }).join('');
+}
+
+function addTestRun(i) {
+  const t = teams[i];
+  t.retests++;
+  if (t.retests > 2) {
+    t.budget -= PENALTIES.excessive_retest;
+    t.penalties.push({ label: 'Excess test run #' + t.retests, amount: PENALTIES.excessive_retest });
+    toast('⚠️ ' + t.name + ': Run #' + t.retests + ' — €500K penalty');
+  } else {
+    toast(t.name + ': Test run #' + t.retests + ' (free)');
+  }
+  renderTestRunPanel();
+  renderBudgetOverview('budget-overview-ph2');
+  syncToLS();
+}
+function removeTestRun(i) {
+  const t = teams[i];
+  if (t.retests <= 0) return;
+  if (t.retests > 2) {
+    t.budget += PENALTIES.excessive_retest;
+    t.penalties = t.penalties.slice(0, -1);
+  }
+  t.retests--;
+  renderTestRunPanel();
+  renderBudgetOverview('budget-overview-ph2');
+  syncToLS();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ALIGNMENT PANEL
+// ═══════════════════════════════════════════════════════════════
+function renderAlignmentPanel() {
+  const c = document.getElementById('alignment-panel');
+  if (!c) return;
+  c.innerHTML = teams.map(function(t, i) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gl);flex-wrap:wrap">' +
+      '<span class="dot" style="background:' + t.color + '"></span>' +
+      '<strong style="min-width:90px">' + t.name + '</strong>' +
+      '<span class="badge ' + (t.misaligned ? 'badge-red' : 'badge-green') + '">' +
+      (t.misaligned ? '⚠️ Misaligned −€500K' : '✅ Aligned') + '</span>' +
+      '<button class="btn btn-sm ' + (t.misaligned ? 'btn-success' : 'btn-danger') + '" style="margin-left:auto" onclick="toggleMisalignment(' + i + ')">' +
+      (t.misaligned ? 'Mark Aligned' : '⚠️ Flag Misalignment') + '</button></div>';
+  }).join('');
+}
+
+function toggleMisalignment(i) {
+  const t = teams[i];
+  if (t.misaligned) {
+    t.misaligned = false;
+    t.budget += PENALTIES.misalignment;
+    t.penalties = t.penalties.filter(function(p) { return p.label !== 'Cross-functional misalignment'; });
+  } else {
+    t.misaligned = true;
+    t.budget -= PENALTIES.misalignment;
+    t.penalties.push({ label: 'Cross-functional misalignment', amount: PENALTIES.misalignment });
+  }
+  renderAlignmentPanel();
+  syncToLS();
+  toast(t.name + ': misalignment ' + (t.misaligned ? 'flagged' : 'cleared'));
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LIVE TEST PANEL
+// ═══════════════════════════════════════════════════════════════
+const LIVE_CHECKS = [
+  ['forward','Forward'], ['reverse','Reverse'], ['left','Turn Left'], ['right','Turn Right'],
+  ['return_to_base','Return ≤15s'], ['no_control_loss','No Control Loss'],
+  ['within_time','Within 3 min'], ['forklift','Forklift (bonus)']
+];
+
+function renderLiveTestPanel() {
+  const c = document.getElementById('live-test-panel');
+  if (!c) return;
+  c.innerHTML = teams.map(function(t, i) {
+    return '<div style="padding:14px 0;border-bottom:1px solid var(--gl)">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">' +
+      '<span class="dot" style="background:' + t.color + '"></span>' +
+      '<strong>' + t.name + '</strong></div>' +
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">' +
+      LIVE_CHECKS.map(function(ch) {
+        return '<label style="display:flex;align-items:center;gap:5px;font-size:.82rem;cursor:pointer">' +
+          '<input type="checkbox" ' + (t.live[ch[0]] ? 'checked' : '') + ' onchange="setLive(' + i + ',\'' + ch[0] + '\',this.checked)" style="accent-color:var(--tq)">' +
+          ch[1] + '</label>';
+      }).join('') +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+      '<label style="font-size:.82rem">Mission time (s):</label>' +
+      '<input type="number" value="' + (t.live.mission_seconds || '') + '" placeholder="e.g. 125" style="width:80px" oninput="setMissionTime(' + i + ',this.value)">' +
+      '<label style="font-size:.82rem"><input type="checkbox" ' + (t.live.system_failure ? 'checked' : '') + ' onchange="setLive(' + i + ',\'system_failure\',this.checked)" style="accent-color:var(--rd)"> System failure</label>' +
+      '</div></div>';
+  }).join('');
+}
+
+function setLive(teamIdx, key, val) {
+  teams[teamIdx].live[key] = val;
+  syncToLS();
+  calculateResults();
+}
+function setMissionTime(teamIdx, val) {
+  teams[teamIdx].live.mission_seconds = parseInt(val) || null;
+  syncToLS();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  FINAL PITCH PENALTIES
+// ═══════════════════════════════════════════════════════════════
+function renderFinalPitchPenalties() {
+  const c = document.getElementById('final-pitch-penalty-panel');
+  if (!c) return;
+  c.innerHTML = teams.map(function(t, i) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gl);flex-wrap:wrap">' +
+      '<span class="dot" style="background:' + t.color + '"></span>' +
+      '<strong style="min-width:90px">' + t.name + '</strong>' +
+      '<div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">' +
+      '<button class="btn btn-ghost btn-sm" onclick="addPenalty(' + i + ',\'Time/rule violation\',100000)">+Time Violation (€100K)</button>' +
+      '<button class="btn btn-ghost btn-sm" onclick="addPenalty(' + i + ',\'Innovation change after Pitch 1\',200000)">+Innovation Change (€200K)</button>' +
+      '</div></div>';
+  }).join('');
+}
+
+function addPenalty(teamIdx, label, amount) {
+  const t = teams[teamIdx];
+  t.penalties.push({ label: label, amount: amount });
+  t.budget -= amount;
+  syncToLS();
+  renderBudgetOverview('budget-overview-ph2');
+  calculateResults();
+  toast('⚠️ ' + t.name + ': ' + label + ' −' + fmt_money(amount));
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BONUS PANEL
+// ═══════════════════════════════════════════════════════════════
+const BONUS_LIST = [
+  { key: 'safe_return', label: 'Safe return ≤15s', amount: 1000000 },
+  { key: 'all_requirements', label: 'All requirements met', amount: 1000000 },
+  { key: 'no_penalties', label: 'No penalties incurred', amount: 1000000 },
+  { key: 'no_system_failure', label: 'No system failure', amount: 1000000 }
+];
+
+function renderBonusPanel() {
+  const c = document.getElementById('bonus-panel');
+  if (!c) return;
+  c.innerHTML = teams.map(function(t, i) {
+    return '<div style="padding:12px 0;border-bottom:1px solid var(--gl)">' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">' +
+      '<span class="dot" style="background:' + t.color + '"></span>' +
+      '<strong>' + t.name + '</strong>' +
+      '<span style="margin-left:auto;font-size:.8rem;color:var(--gd)">Budget: <strong>' + fmt_money(t.budget) + '</strong></span>' +
+      '</div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+      BONUS_LIST.map(function(b) {
+        const active = t.bonuses.includes(b.key);
+        // auto-suggest
+        let suggested = false;
+        if (b.key === 'safe_return') suggested = t.live.return_to_base;
+        if (b.key === 'all_requirements') suggested = t.live.forward && t.live.reverse && t.live.left && t.live.right && t.live.no_control_loss && t.live.within_time;
+        if (b.key === 'no_penalties') suggested = t.penalties.length === 0;
+        if (b.key === 'no_system_failure') suggested = !t.live.system_failure;
+        return '<button class="btn btn-sm ' + (active ? 'btn-success' : 'btn-ghost') + '" onclick="toggleBonus(' + i + ',\'' + b.key + '\')">' +
+          (active ? '✓ ' : '') + b.label + ' (+€1M)' + (suggested && !active ? ' ✨' : '') + '</button>';
+      }).join('') +
+      '</div></div>';
+  }).join('');
+}
+
+function toggleBonus(teamIdx, key) {
+  const t = teams[teamIdx];
+  if (t.bonuses.includes(key)) {
+    t.bonuses = t.bonuses.filter(function(b) { return b !== key; });
+    t.budget -= BONUSES[key];
+  } else {
+    t.bonuses.push(key);
+    t.budget += BONUSES[key];
+  }
+  renderBonusPanel();
+  calculateResults();
+  syncToLS();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  VOTE MATRIX
+// ═══════════════════════════════════════════════════════════════
+function renderVoteTabs() {
+  const c = document.getElementById('vote-tabs');
+  if (!c) return;
+  c.innerHTML = teams.map(function(t, i) {
+    return '<button class="btn btn-sm ' + (i === selectedVoterIdx ? 'btn-primary' : 'btn-ghost') + '" onclick="selectVoter(' + i + ')">' +
+      '<span class="dot" style="background:' + t.color + ';margin-right:5px"></span>' + t.name + '</button>';
+  }).join('');
+}
+function selectVoter(i) {
+  selectedVoterIdx = i;
+  renderVoteTabs();
+  renderVoteMatrix();
+}
+
+function renderVoteMatrix() {
+  const c = document.getElementById('vote-matrix-panel');
+  if (!c) return;
+  const voter = teams[selectedVoterIdx];
+  let html = '<p style="font-size:.82rem;color:var(--gd);margin-bottom:10px"><strong>' + voter.name + '</strong> gives scores (0–5) to all other teams:</p>';
+  html += '<div style="overflow-x:auto"><table class="vote-table"><thead><tr><th>Team</th>';
+  VOTE_CRITERIA.forEach(function(cr, ci) { html += '<th>C' + (ci+1) + '</th>'; });
+  html += '<th>Total</th></tr></thead><tbody>';
+  teams.forEach(function(target, ti) {
+    if (!voter.votes[ti]) voter.votes[ti] = [0,0,0,0,0];
+    if (ti === selectedVoterIdx) {
+      html += '<tr><td colspan="' + (VOTE_CRITERIA.length + 2) + '" style="text-align:center;color:var(--gm);padding:8px">' + target.name + ' (cannot self-vote)</td></tr>';
+      return;
+    }
+    const total = voter.votes[ti].reduce(function(a,b) { return a+b; }, 0);
+    html += '<tr><td><span class="dot" style="background:' + target.color + ';margin-right:6px"></span>' + target.name + '</td>';
+    VOTE_CRITERIA.forEach(function(cr, ci) {
+      html += '<td><input type="number" min="0" max="5" value="' + (voter.votes[ti][ci] || 0) +
+        '" oninput="setVote(' + selectedVoterIdx + ',' + ti + ',' + ci + ',this.value)" style="width:44px;text-align:center;border:1.5px solid var(--gm);border-radius:6px;padding:4px;font-family:inherit"></td>';
+    });
+    html += '<td><strong>' + total + '</strong></td></tr>';
+  });
+  html += '</tbody></table></div>';
+  html += '<div style="margin-top:8px;font-size:.76rem;color:var(--gd)">';
+  VOTE_CRITERIA.forEach(function(cr, i) { html += 'C' + (i+1) + ': ' + cr + (i < VOTE_CRITERIA.length-1 ? ' · ' : ''); });
+  html += '</div>';
+  c.innerHTML = html;
+}
+
+function setVote(voterIdx, targetIdx, criIdx, val) {
+  if (!teams[voterIdx].votes[targetIdx]) teams[voterIdx].votes[targetIdx] = [0,0,0,0,0];
+  teams[voterIdx].votes[targetIdx][criIdx] = Math.min(5, Math.max(0, parseInt(val) || 0));
+  calculateResults();
+  syncToLS();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RESULTS
+// ═══════════════════════════════════════════════════════════════
+function calculateResults() {
+  // Tally votes
+  teams.forEach(function(target, ti) {
+    let total = 0;
+    teams.forEach(function(voter, vi) {
+      if (vi === ti) return;
+      if (voter.votes[ti]) total += voter.votes[ti].reduce(function(a,b) { return a+b; }, 0);
+    });
+    target._total_votes = total;
+    const lt = target.live;
+    const passed = lt.forward && lt.reverse && lt.left && lt.right && lt.no_control_loss && lt.within_time;
+    target._vote_eff = passed ? total : Math.round(total * 0.5);
+    target._vote_pen = total - target._vote_eff;
+  });
+
+  // Fastest
+  const withTime = teams.filter(function(t) {
+    const lt = t.live;
+    return lt.forward && lt.reverse && lt.left && lt.right && lt.within_time && lt.mission_seconds;
+  });
+  const fastest = withTime.length ? withTime.reduce(function(a,b) { return a.live.mission_seconds < b.live.mission_seconds ? a : b; }) : null;
+
+  const sorted = teams.slice().sort(function(a,b) { return b.budget - a.budget; });
+  const rankClass = ['gold','silver','bronze'];
+  const rankEmoji = ['🥇','🥈','🥉'];
+
+  const c = document.getElementById('results-panel');
+  if (!c) return;
+
+  let html = '<div class="grid3" style="margin-bottom:18px">';
+  sorted.forEach(function(t, rank) {
+    html += '<div class="result-card ' + (rankClass[rank] || '') + '">' +
+      '<div class="result-rank">' + (rankEmoji[rank] || (rank+1) + '.') + '</div>' +
+      '<div class="result-team" style="color:' + t.color + '">' + t.name + '</div>' +
+      '<div class="result-budget">' + fmt_money(t.budget) + '</div>' +
+      '<div style="font-size:.76rem;color:var(--gd);margin-top:6px">🗳 ' + t._vote_eff + ' votes' +
+      (t._vote_pen > 0 ? ' <span class="badge badge-red">−' + t._vote_pen + ' (failed)</span>' : '') + '</div>' +
+      (fastest && fastest.name === t.name ? '<div style="margin-top:6px"><span class="badge badge-tq">⚡ Speed Winner</span></div>' : '') +
+      '</div>';
+  });
+  html += '</div>';
+
+  html += '<div style="overflow-x:auto"><table><thead><tr><th>Team</th><th>Final Budget</th><th>Votes (total)</th><th>Vote Penalty</th><th>Eff. Votes</th><th>Mission Time</th><th>Bonuses</th><th>Penalties</th></tr></thead><tbody>';
+  sorted.forEach(function(t) {
+    html += '<tr><td><span class="dot" style="background:' + t.color + ';margin-right:6px"></span><strong>' + t.name + '</strong></td>' +
+      '<td>' + fmt_money(t.budget) + '</td>' +
+      '<td>' + t._total_votes + '</td>' +
+      '<td>' + (t._vote_pen > 0 ? '−' + t._vote_pen : '—') + '</td>' +
+      '<td><strong>' + t._vote_eff + '</strong></td>' +
+      '<td>' + (t.live.mission_seconds ? t.live.mission_seconds + 's' : '—') + '</td>' +
+      '<td>' + t.bonuses.length + '</td>' +
+      '<td>' + t.penalties.length + '</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  if (fastest) html += '<div class="info" style="margin-top:12px">⚡ Speed Track Winner: <strong>' + fastest.name + '</strong> — ' + fastest.live.mission_seconds + 's</div>';
+  html += '<div class="info">💰 Budget Track Leader: <strong>' + sorted[0].name + '</strong> — ' + fmt_money(sorted[0].budget) + '</div>';
+  c.innerHTML = html;
+
+  syncToLS();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LOCALSTORAGE SYNC (for player screen)
+// ═══════════════════════════════════════════════════════════════
+function syncToLS() {
+  try {
+    const payload = {
+      ts: Date.now(),
+      activeTab: currentScreen,
+      timerSecondsLeft: timerSecondsLeft,
+      sessionStartTime: sessionStartTime,
+      format: window._sessionFormat || 'full',
+      teams: teams.map(function(t) {
+        return {
+          name: t.name, color: t.color, budget: t.budget,
+          code_tier: t.code_tier, features: t.features,
+          bonuses: t.bonuses, penalties: t.penalties,
+          _total_votes: t._total_votes || 0,
+          _effective_votes: t._vote_eff || 0,
+          _vote_penalty: t._vote_pen || 0,
+          live_test: t.live
+        };
+      })
+    };
+    localStorage.setItem(LS_KEY, JSON.stringify(payload));
+  } catch(e) {}
+}
+
+// Auto sync every 3 seconds
+setInterval(syncToLS, 3000);
+
+// ═══════════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════
+function fmt_money(n) {
+  if (n === null || n === undefined) return '—';
+  const neg = n < 0;
+  const abs = Math.abs(n);
+  const s = abs >= 1000000
+    ? (abs / 1000000).toFixed(abs % 1000000 === 0 ? 0 : 1) + 'M'
+    : (abs / 1000).toFixed(0) + 'K';
+  return (neg ? '−€' : '€') + s;
+}
+function fmt_time(s, elapsed) {
+  if (elapsed) {
+    const h = Math.floor(s/3600); const m = Math.floor((s%3600)/60); const sec = s%60;
+    return (h > 0 ? h + ':' : '') + pad(m) + ':' + pad(sec);
+  }
+  return pad(Math.floor(s/60)) + ':' + pad(s%60);
+}
+function pad(n) { return String(n).padStart(2,'0'); }
+
+function toast(msg) {
+  const area = document.getElementById('toast-area');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  area.appendChild(el);
+  setTimeout(function() { el.remove(); }, 3500);
+}
+</script>
+</body>
+</html>
